@@ -1,0 +1,41 @@
+import groovy.json.JsonOutput
+
+
+node {
+
+	stage('Get Data'){
+        withEnv(['JIRA_SITE=Jira-prod']) {
+        
+
+			echo "--- FX COMPONENT ---"
+
+
+	        def response = jiraGetProjectComponents idOrKey: 'FX'
+	        def components = response.data
+
+
+	 		components.each{
+	 		
+	 			echo it.id.toString() + " | " + it.name.toString()
+	 		
+	 		}
+
+
+			echo "--- TWA COMPONENT ---"
+
+
+	        response = jiraGetProjectComponents idOrKey: 'TWA'
+	        components = response.data
+
+
+	 		components.each{
+	 		
+	 			echo it.id.toString() + " | " + it.name.toString()
+	 		
+	 		}
+
+
+	 		
+        }
+    }
+}	

@@ -1,0 +1,210 @@
+
+/*
+
+
+DEVTicket -> ManuTicket -> AutoTicket
+
+Ticket for Validation
+https://issues.wkts.eu/browse/QATST-294
+
+
+-FX
+11652 | QA-Automated
+11651 | QA-Manual
+
+-TWA
+11672 | [QA] Automated
+11671 | [QA] Manual
+
+-QATST
+14535 | QA-Automated
+15412 | QA-Manual
+
+
+*/
+
+
+
+import groovy.json.JsonOutput
+
+
+node {
+
+	stage('Tickets Creation'){
+        withEnv(['JIRA_SITE=Jira-prod']) {
+        
+        
+        	//Define Project
+        	//**************
+        	def MANUComp, AUTOComp, MANUAssign, AUTOAssign
+        	def proj = env.TICKET.substring(0, env.TICKET.lastIndexOf("-"))
+        	echo "project: " + proj
+        	if ("QATST".equals(proj)){
+        		echo "THIS IS FOR " + proj + " Application"
+        		MANUComp = "15412"
+        		AUTOComp = "14535"
+        		MANUAssign = "frederic.michotte"
+        		AUTOAssign = "frederic.michotte"
+        	} else if ("TWA".equals(proj)){
+        		echo "THIS IS FOR " + proj + " Application"
+        		MANUComp = "11671"a
+        		AUTOComp = "11672"
+        		MANUAssign = "k.stakhiv"
+        		AUTOAssign = "i.rak"
+        	} else if ("FX".equals(proj)){
+        		echo "THIS IS FOR " + proj + " Application"
+        		MANUComp = "11651"
+        		AUTOComp = "11652"
+        		MANUAssign = "v.malova-zbyr"
+        		AUTOAssign = "o.melnychuk"
+        	} else if ("SLOT".equals(proj)){
+	        	error ("SLOT NOT YET DEFINE !!!!")
+        	} else if ("CD".equals(proj)){
+	        	error ("CD NOT YET DEFINE !!!!")
+        	} else if ("TWCOSTNEW".equals(proj)){
+	        	error ("TWCOSTNEW NOT YET DEFINE !!!!")
+        	} else if ("TWM".equals(proj)){
+	        	error ("TWM NOT YET DEFINE !!!!")
+        	} else if ("LVT".equals(proj)){
+	        	error ("LVT NOT YET DEFINE !!!!")
+        	} else if ("WKTSADMIN".equals(proj)){
+	        	error ("WKTSADMIN NOT YET DEFINE !!!!")
+        	}
+        
+        	//Found MANU TICKET
+        	//*****************
+	        def response = jiraGetIssue idOrKey: env.TICKET
+	        def ticket = response.data.fields
+	        
+	        if (!ticket){
+	        	error ("DEV Ticket not existing !!!")
+	        }
+	        
+	        
+	        
+	        def MANUTick
+	        def MANUKey
+	 		ticket.issuelinks.each{ link ->
+	 		
+	 			if (link.inwardIssue && link.inwardIssue.fields.issuetype.name == 'Test') {
+		 			def linkTicket = jiraGetIssue idOrKey: link.inwardIssue.key
+		 			
+		 			//Found the Manu Ticket	 			
+                    linkTicket.data.fields.components.find{ c -> 
+                      if (c.id == MANUComp){
+                      	  MANUKey = link.inwardIssue.key
+                          MANUTick = linkTicket.data.fields
+                      }
+		 			}
+		 		}
+	        }
+	        
+	        if ("BOTH".equals(env.TYPE) || "MANU".equals(env.TYPE) ){
+		        if (!MANUTick){
+		            def prefix = ticket.issuetype.name == 'Bug' ? 'Validate ' + env.TICKET + ' ' : '[MT] '        
+			        def components = [[id: MANUComp]]
+			        ticket.components.each{
+			        	components << it.subMap('id')
+			        }
+			        
+			        echo components.toString()
+			        
+					//TICKET DEFINITION
+		            def testMANUIssue = [
+		                    fields: [
+		                            project          : [key: proj],
+		                            summary          : prefix + ticket.summary,
+		                            description      : ticket.description ?: '',
+		                            priority         : [id: ticket.priority.id],
+		                            versions         : ticket.versions,
+		                            fixVersions      : ticket.fixVersions,
+		                            issuetype        : [name: 'Test'],
+		                            components       : components,
+		                            customfield_10442: ticket.customfield_10442,
+		                            labels           : ticket.labels,
+		                            environment      : ticket.environment ?: ''
+		                    ]
+		            ]
+		
+		            response = jiraNewIssue issue: testMANUIssue, auditLog: false
+		            
+	            	jiraAssignIssue idOrKey: response.data.key, userName: MANUAssign
+		            jiraLinkIssues type: 'is tested by', inwardKey: response.data.key, outwardKey: env.TICKET
+		            
+					MANUKey = response.data.key
+	
+		        }else{
+			        echo ("Manual ticket already exist ")
+			        echo MANUKey + " | " + MANUTick.summary 	        
+		        }
+		    }	        
+	 	    if ("BOTH".equals(env.TYPE) || "AUTO".equals(env.TYPE) ){
+	 	    
+		        if (MANUKey){
+	 	    
+	 	    		def MANUresponse = jiraGetIssue idOrKey: MANUKey
+	 	    		def MANUticket = MANUresponse.data.fields
+	 	    		
+	 	    
+		        	//Found AUTO TICKET
+		        	//*****************
+			        def AUTOTick
+			        def AUTOKey
+			 		MANUticket.issuelinks.each{ link ->
+			 		
+			 			if (link.inwardIssue && link.inwardIssue.fields.issuetype.name == 'Test') {
+				 			def linkTicket = jiraGetIssue idOrKey: link.inwardIssue.key
+				 			
+				 			//Found the Auto Ticket	 			
+		                    linkTicket.data.fields.components.find{ c -> 
+		                      if (c.id == AUTOComp){
+		                      	  AUTOKey = link.inwardIssue.key
+		                          AUTOTick = linkTicket.data.fields
+		                      }
+				 			}
+				 		}
+			        }
+
+					if (("YES".equals(env.FORCE)) || (!AUTOTick)){
+		 	    		
+		 	    		def components = [[id: AUTOComp]]
+				        ticket.components.each{
+				        	components << it.subMap('id')
+				        }
+		 	    		
+			            def testAUTOIssue = [
+			                    fields: [
+			                            project          : [key: proj],
+			                            summary          : '[AT]' + MANUticket.summary.minus('[MT]').minus('Validate'),
+			                            description      : ticket.description ?: '',
+			                            priority         : [id: ticket.priority.id],
+			                            versions  			: ticket.fixVersions,
+			                            issuetype        : [name: 'Test'],
+			                            components       : components,
+			                            customfield_10442: ticket.customfield_10442,
+			                            labels           : ticket.labels,
+			                            environment      : ticket.environment ?: ''
+			                    ]
+			            ]
+				                            
+				                            
+			            response = jiraNewIssue issue: testAUTOIssue, auditLog: false
+	
+		            	jiraAssignIssue idOrKey: response.data.key, userName: AUTOAssign
+			            jiraLinkIssues type: 'is tested by', inwardKey: response.data.key, outwardKey: MANUKey
+					}			             
+                    
+				}else{
+					
+					error ("No MANUAL TICKET !!!!!!!!!!")
+				}
+
+	 	    
+	 	    }
+	 	    
+	 	    
+	     }
+	     
+	    
+	}
+}
