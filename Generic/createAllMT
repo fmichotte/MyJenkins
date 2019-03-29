@@ -47,7 +47,7 @@ node {
         		AUTOAssign = "frederic.michotte"
         	} else if ("TWA".equals(proj)){
         		echo "THIS IS FOR " + proj + " Application"
-        		MANUComp = "11671"a
+        		MANUComp = "11671"
         		AUTOComp = "11672"
         		MANUAssign = "k.stakhiv"
         		AUTOAssign = "i.rak"
@@ -55,8 +55,8 @@ node {
         		echo "THIS IS FOR " + proj + " Application"
         		MANUComp = "11651"
         		AUTOComp = "11652"
-        		MANUAssign = "v.malova-zbyr"
-        		AUTOAssign = "o.melnychuk"
+        		MANUAssign = "v.malova-zbyr"	
+        		AUTOAssign = "o.marushchak"
         	} else if ("SLOT".equals(proj)){
 	        	error ("SLOT NOT YET DEFINE !!!!")
         	} else if ("CD".equals(proj)){
@@ -86,13 +86,14 @@ node {
 	        def MANUKey
 	 		ticket.issuelinks.each{ link ->
 	 		
-	 			if (link.inwardIssue && link.inwardIssue.fields.issuetype.name == 'Test') {
-		 			def linkTicket = jiraGetIssue idOrKey: link.inwardIssue.key
+	 			if (link.outwardIssue && link.outwardIssue.fields.issuetype.name == 'Test') {
+		 			def linkTicket = jiraGetIssue idOrKey: link.outwardIssue.key
 		 			
 		 			//Found the Manu Ticket	 			
                     linkTicket.data.fields.components.find{ c -> 
+                    
                       if (c.id == MANUComp){
-                      	  MANUKey = link.inwardIssue.key
+                      	  MANUKey = link.outwardIssue.key
                           MANUTick = linkTicket.data.fields
                       }
 		 			}
@@ -106,8 +107,6 @@ node {
 			        ticket.components.each{
 			        	components << it.subMap('id')
 			        }
-			        
-			        echo components.toString()
 			        
 					//TICKET DEFINITION
 		            def testMANUIssue = [
@@ -129,7 +128,7 @@ node {
 		            response = jiraNewIssue issue: testMANUIssue, auditLog: false
 		            
 	            	jiraAssignIssue idOrKey: response.data.key, userName: MANUAssign
-		            jiraLinkIssues type: 'is tested by', inwardKey: response.data.key, outwardKey: env.TICKET
+		            jiraLinkIssues type: 'is tested by', inwardKey: env.TICKET, outwardKey: response.data.key
 		            
 					MANUKey = response.data.key
 	
@@ -152,13 +151,13 @@ node {
 			        def AUTOKey
 			 		MANUticket.issuelinks.each{ link ->
 			 		
-			 			if (link.inwardIssue && link.inwardIssue.fields.issuetype.name == 'Test') {
-				 			def linkTicket = jiraGetIssue idOrKey: link.inwardIssue.key
+			 			if (link.outwardIssue && link.outwardIssue.fields.issuetype.name == 'Test') {
+				 			def linkTicket = jiraGetIssue idOrKey: link.outwardIssue.key
 				 			
 				 			//Found the Auto Ticket	 			
 		                    linkTicket.data.fields.components.find{ c -> 
 		                      if (c.id == AUTOComp){
-		                      	  AUTOKey = link.inwardIssue.key
+		                      	  AUTOKey = link.outwardIssue.key
 		                          AUTOTick = linkTicket.data.fields
 		                      }
 				 			}
@@ -191,7 +190,7 @@ node {
 			            response = jiraNewIssue issue: testAUTOIssue, auditLog: false
 	
 		            	jiraAssignIssue idOrKey: response.data.key, userName: AUTOAssign
-			            jiraLinkIssues type: 'is tested by', inwardKey: response.data.key, outwardKey: MANUKey
+		            	jiraLinkIssues type: 'is tested by', inwardKey: MANUKey, outwardKey: response.data.key
 					}			             
                     
 				}else{
