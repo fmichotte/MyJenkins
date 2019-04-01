@@ -1,0 +1,17 @@
+import groovy.json.JsonOutput
+
+
+node {
+
+	stage('Call List'){
+	
+	
+	
+		build job: 'QATickets', parameters: [[TICKET: "TWA-123", TYPE: "MANU", FORCE: "NO"]]
+	
+	
+	
+	
+	
+	}
+}

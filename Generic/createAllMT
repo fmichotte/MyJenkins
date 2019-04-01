@@ -38,37 +38,52 @@ node {
         	//**************
         	def MANUComp, AUTOComp, MANUAssign, AUTOAssign
         	def proj = env.TICKET.substring(0, env.TICKET.lastIndexOf("-"))
-        	echo "project: " + proj
+        	echo "THIS IS FOR " + proj + " Application"
         	if ("QATST".equals(proj)){
-        		echo "THIS IS FOR " + proj + " Application"
         		MANUComp = "15412"
         		AUTOComp = "14535"
         		MANUAssign = "frederic.michotte"
         		AUTOAssign = "frederic.michotte"
         	} else if ("TWA".equals(proj)){
-        		echo "THIS IS FOR " + proj + " Application"
         		MANUComp = "11671"
         		AUTOComp = "11672"
         		MANUAssign = "k.stakhiv"
         		AUTOAssign = "i.rak"
         	} else if ("FX".equals(proj)){
-        		echo "THIS IS FOR " + proj + " Application"
         		MANUComp = "11651"
         		AUTOComp = "11652"
         		MANUAssign = "v.malova-zbyr"	
         		AUTOAssign = "o.marushchak"
         	} else if ("SLOT".equals(proj)){
-	        	error ("SLOT NOT YET DEFINE !!!!")
+        		MANUComp = "14209"
+        		AUTOComp = "14277"
+        		MANUAssign = ""	
+        		AUTOAssign = "o.kasianchuk"
         	} else if ("CD".equals(proj)){
-	        	error ("CD NOT YET DEFINE !!!!")
+        		MANUComp = "11819"
+        		AUTOComp = "11817"
+        		MANUAssign = "a.hladkyi"	
+        		AUTOAssign = "k.shavarovska"
         	} else if ("TWCOSTNEW".equals(proj)){
-	        	error ("TWCOSTNEW NOT YET DEFINE !!!!")
+        		MANUComp = "12560"
+        		AUTOComp = "12562"
+        		MANUAssign = "m.shevchenko"	
+        		AUTOAssign = "m.shevchenko"
         	} else if ("TWM".equals(proj)){
-	        	error ("TWM NOT YET DEFINE !!!!")
+        		MANUComp = "12584"
+        		AUTOComp = "12583"
+        		MANUAssign = "d.hrynevych"	
+        		AUTOAssign = "d.hrynevych"
         	} else if ("LVT".equals(proj)){
-	        	error ("LVT NOT YET DEFINE !!!!")
+        		MANUComp = "15422"
+        		AUTOComp = "14635"
+        		MANUAssign = "r.kot"	
+        		AUTOAssign = "r.kot"
         	} else if ("WKTSADMIN".equals(proj)){
-	        	error ("WKTSADMIN NOT YET DEFINE !!!!")
+        		MANUComp = "11681"
+        		AUTOComp = "11682"
+        		MANUAssign = "r.kolesnyk"	
+        		AUTOAssign = "o.yakubets"
         	}
         
         	//Found MANU TICKET
